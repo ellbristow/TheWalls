@@ -1,45 +1,41 @@
 package rubik_cube_man.plugins.walls.blockFileData;
 
-import java.util.HashMap;
-import java.util.Map;
-import lucariatias.plugins.walls.ObjectFileLib;
+import java.io.Serializable;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.plugin.Plugin;
+
+import rubik_cube_man.plugins.walls.Arena;
 import rubik_cube_man.plugins.walls.Walls;
 
-public class ArenaFileManager {
+public class ArenaFileManager implements Serializable{
 
-    private static Walls plugin;
-    public static Map<String, ArenaBlocksAndInfo> arenas = new HashMap<String, ArenaBlocksAndInfo>();
-
-    public static void setPlugin(Plugin plugin) {
-        ArenaFileManager.plugin = (Walls) plugin;
-    }
-
-    public static void createANewArena(String arenaName, Location loc1, Location loc2) {
-        ArenaBlocksAndInfo arena = new ArenaBlocksAndInfo(loc1, loc2, arenaName.toLowerCase());
-        ArenaFileManager.arenas.put(arenaName.toLowerCase(), arena);
-    }
-
-    public static void saveToAFile(String arena) {
-        if (ArenaFileManager.arenas.containsKey(arena)) {
-            ArenaBlocksAndInfo abai = arenas.get(arena);
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new SaveDataRunnable(abai, plugin, arena));
-        }
-    }
-
-    public static void loadArenaFiles(String arenas) {
-        ArenaBlocksAndInfo arena = (ArenaBlocksAndInfo) ObjectFileLib.loadObject(plugin, arenas + " Blocks");
-        ArenaFileManager.arenas.put(arenas, arena);
-    }
-
-    public static void restoreAllArenas() {
-        for (String arena : ArenaFileManager.arenas.keySet()) {
-            ArenaFileManager.arenas.get(arena).restoreBlocks();
-        }
-    }
-
-    public static void restoreArena(String arena) {
-        ArenaFileManager.arenas.get(arena).restoreBlocks();
-    }
+	private static final long serialVersionUID = -3280620778831356769L;
+	private static Walls plugin;
+	
+	public static void setPlugin(Walls plugin){
+		ArenaFileManager.plugin = plugin;
+	}
+	
+	public static void saveToAFile(String arenaName, Location loc1, Location loc2){
+		Integer minX = (int) Math.min(loc1.getX() , loc2.getX());
+		Integer minY = (int) Math.min(loc1.getY() , loc2.getY());
+		Integer minZ = (int) Math.min(loc1.getZ() , loc2.getZ());
+		new ArenaBlocksAndInfo(loc1.getBlockX(), loc1.getBlockY(), loc1.getBlockZ(), loc2.getBlockX(), loc2.getBlockY(), loc2.getBlockZ(), loc1.getWorld().getName(), arenaName.toLowerCase(), plugin, (int) minX, (int) minY, (int) minZ, 1);
+	}
+	
+	public static void loadArenaFiles(String arenas, Integer num){
+		Arena arena = plugin.arenas.get(arenas);
+		arena.setResetting(true);
+		for (Integer number : arena.getSignWalls().keySet()){
+			arena.getSignWalls().get(number).setProgress("Resetting");
+			arena.getSignWalls().get(number).setTime(null);
+			arena.getSignWalls().get(number).updateSigns(arena.getMin(), arena.getTotal(), arena.getPlayerList());
+		}
+		Bukkit.getServer().getScheduler().runTaskAsynchronously(plugin, new LoadDataRunnable(plugin, arenas, num));
+	}
+	
+	public static void setFilesForAnArena(Integer files, String arena){
+		plugin.arenas.get(arena).setFiles(files);
+	}
 }

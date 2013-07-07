@@ -2,7 +2,7 @@ name: TheWalls
 author: rubik_cube_man
 main: rubik_cube_man.plugins.walls.Walls
 softdepend: [Multiverse-Core, Multiworld, DimensionDoor]
-version: 1.1.0.1
+version: 1.2.0.1
 depend: [TagAPI]
 softdepend: [Multiverse-Core, Multiworld, DimensionDoor]
 load: POSTWORLD
